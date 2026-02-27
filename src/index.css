@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+}
+
+::-webkit-scrollbar {
+  width: 5px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #1f1f23;
+  border-radius: 3px;
+}
+
+input::placeholder {
+  color: #3f3f46;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
