@@ -1,5 +1,14 @@
 import { useState, useRef, useEffect } from "react";
 import type { ChatMessage } from "../../data/types";
+import {
+  TEXT_PRIMARY,
+  TEXT_MUTED,
+  BORDER_DEFAULT,
+  BORDER_SUBTLE,
+  BORDER_HOVER,
+  FONT_LABEL,
+  FONT_BODY,
+} from "../../lib/designTokens";
 
 interface MistakeChatProps {
   mistakeId: number;
@@ -35,14 +44,13 @@ export default function MistakeChat({ mistakeId }: MistakeChatProps) {
     }, 1200);
   };
 
-  // Suppress unused var warning — mistakeId will be used for API calls later
   void mistakeId;
 
   return (
-    <div style={{ background: "#0a0a0c", borderRadius: 10, border: "1px solid #1a1a1d", overflow: "hidden" }}>
-      <div style={{ padding: "7px 12px", borderBottom: "1px solid #141416", display: "flex", alignItems: "center", gap: 5 }}>
-        <span style={{ fontSize: 11 }}>{"\u{1F4AC}"}</span>
-        <span style={{ fontSize: 10, color: "#52525b", fontWeight: 600 }}>Ask about this mistake</span>
+    <div style={{ background: "#0a0a0c", borderRadius: 10, border: `1px solid ${BORDER_DEFAULT}`, overflow: "hidden" }}>
+      <div style={{ padding: "7px 12px", borderBottom: `1px solid ${BORDER_SUBTLE}`, display: "flex", alignItems: "center", gap: 5 }}>
+        <span style={{ fontSize: FONT_LABEL }}>{"\u{1F4AC}"}</span>
+        <span style={{ fontSize: FONT_LABEL, color: TEXT_MUTED, fontWeight: 600 }}>Ask about this mistake</span>
       </div>
 
       {messages.length > 0 && (
@@ -66,7 +74,7 @@ export default function MistakeChat({ mistakeId }: MistakeChatProps) {
                   borderRadius: msg.role === "user" ? "10px 10px 2px 10px" : "10px 10px 10px 2px",
                   background: msg.role === "user" ? "#164e63" : "#141416",
                   color: msg.role === "user" ? "#cffafe" : "#d4d4d8",
-                  fontSize: 12,
+                  fontSize: FONT_BODY,
                   lineHeight: 1.55,
                 }}
               >
@@ -80,8 +88,8 @@ export default function MistakeChat({ mistakeId }: MistakeChatProps) {
                 padding: "7px 11px",
                 borderRadius: "10px 10px 10px 2px",
                 background: "#141416",
-                color: "#3f3f46",
-                fontSize: 12,
+                color: TEXT_MUTED,
+                fontSize: FONT_BODY,
                 alignSelf: "flex-start",
               }}
             >
@@ -94,7 +102,7 @@ export default function MistakeChat({ mistakeId }: MistakeChatProps) {
       <div
         style={{
           padding: "7px 8px",
-          borderTop: messages.length ? "1px solid #141416" : "none",
+          borderTop: messages.length ? `1px solid ${BORDER_SUBTLE}` : "none",
           display: "flex",
           gap: 6,
         }}
@@ -107,11 +115,11 @@ export default function MistakeChat({ mistakeId }: MistakeChatProps) {
           style={{
             flex: 1,
             background: "#141416",
-            border: "1px solid #1f1f23",
+            border: `1px solid ${BORDER_HOVER}`,
             borderRadius: 7,
             padding: "7px 10px",
-            color: "#e4e4e7",
-            fontSize: 12,
+            color: TEXT_PRIMARY,
+            fontSize: FONT_BODY,
             outline: "none",
             fontFamily: "inherit",
           }}
@@ -120,12 +128,12 @@ export default function MistakeChat({ mistakeId }: MistakeChatProps) {
           onClick={handleSend}
           disabled={!input.trim() || isThinking}
           style={{
-            background: input.trim() && !isThinking ? "#0e7490" : "#1a1a1d",
-            color: input.trim() && !isThinking ? "#cffafe" : "#3f3f46",
+            background: input.trim() && !isThinking ? "#0e7490" : BORDER_DEFAULT,
+            color: input.trim() && !isThinking ? "#cffafe" : TEXT_MUTED,
             border: "none",
             borderRadius: 7,
             padding: "7px 14px",
-            fontSize: 11,
+            fontSize: FONT_LABEL,
             fontWeight: 600,
             cursor: input.trim() && !isThinking ? "pointer" : "default",
             fontFamily: "inherit",

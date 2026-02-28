@@ -1,11 +1,13 @@
 import { useState, useCallback } from "react";
 import type { Mistake, Explanation, ReplayMetadata } from "./data/types";
 import Header from "./components/layout/Header";
-import MistakeCard from "./components/analysis/MistakeCard";
+import MistakeSidebar from "./components/layout/MistakeSidebar";
+import BoardPanel from "./components/layout/BoardPanel";
+import AnalysisPanel from "./components/layout/AnalysisPanel";
 import ReplayInput from "./components/upload/ReplayInput";
-import GeneratePanel from "./components/analysis/GeneratePanel";
 import type { GenerationStatus } from "./components/analysis/GeneratePanel";
 import { generateAllExplanations } from "./lib/claudeApi";
+import { BG_APP, TEXT_PRIMARY, FONT_SANS } from "./lib/designTokens";
 
 type AppMode = "upload" | "results";
 
@@ -13,7 +15,7 @@ export default function App() {
   const [mode, setMode] = useState<AppMode>("upload");
   const [mistakes, setMistakes] = useState<Mistake[]>([]);
   const [metadata, setMetadata] = useState<ReplayMetadata | null>(null);
-  const [openId, setOpenId] = useState<number | null>(null);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
 
   // AI generation state
   const [genStatus, setGenStatus] = useState<GenerationStatus>("idle");
@@ -24,9 +26,8 @@ export default function App() {
     (newMistakes: Mistake[], newMetadata: ReplayMetadata) => {
       setMistakes(newMistakes);
       setMetadata(newMetadata);
-      setOpenId(newMistakes.length > 0 ? newMistakes[0].id : null);
+      setSelectedId(newMistakes.length > 0 ? newMistakes[0].id : null);
       setMode("results");
-      // Reset generation state for new data
       setGenStatus("idle");
       setGenProgress(0);
       setGenError(null);
@@ -38,14 +39,14 @@ export default function App() {
     setMode("upload");
     setMistakes([]);
     setMetadata(null);
-    setOpenId(null);
+    setSelectedId(null);
     setGenStatus("idle");
     setGenProgress(0);
     setGenError(null);
   }, []);
 
   const handleGenerate = useCallback(
-    async (apiKey: string) => {
+    async () => {
       setGenStatus("generating");
       setGenProgress(0);
       setGenError(null);
@@ -53,10 +54,9 @@ export default function App() {
       try {
         await generateAllExplanations(
           mistakes,
-          { apiKey },
+          { apiKey: "" },
           (index: number, explanation: Explanation) => {
             setGenProgress(index);
-            // Update the specific mistake's explanation immutably
             setMistakes((prev) =>
               prev.map((m, i) =>
                 i === index ? { ...m, explanation } : m,
@@ -76,14 +76,18 @@ export default function App() {
   );
 
   const totalEvLoss = mistakes.reduce((s, m) => s + m.evDiff, 0);
+  const selectedMistake = mistakes.find((m) => m.id === selectedId) ?? null;
 
   return (
     <div
       style={{
-        minHeight: "100vh",
-        background: "#09090b",
-        color: "#e4e4e7",
-        fontFamily: "'DM Sans',-apple-system,sans-serif",
+        height: "100vh",
+        overflow: "hidden",
+        background: BG_APP,
+        color: TEXT_PRIMARY,
+        fontFamily: FONT_SANS,
+        display: "flex",
+        flexDirection: "column",
       }}
     >
       {mode === "upload" && <ReplayInput onResult={handleResult} />}
@@ -96,69 +100,29 @@ export default function App() {
             onNewReplay={handleNewReplay}
           />
 
+          {/* Three-panel layout */}
           <div
             style={{
-              maxWidth: 760,
-              margin: "0 auto",
-              padding: "8px 20px 32px",
+              flex: 1,
               display: "flex",
-              flexDirection: "column",
-              gap: 8,
+              overflow: "hidden",
             }}
           >
-            {/* Generate AI Analysis CTA */}
-            <GeneratePanel
-              status={genStatus}
-              progress={genProgress}
-              total={mistakes.length}
-              error={genError}
+            <MistakeSidebar
+              mistakes={mistakes}
+              selectedId={selectedId}
+              onSelect={setSelectedId}
+              totalEvLoss={totalEvLoss}
+              genStatus={genStatus}
+              genProgress={genProgress}
+              genError={genError}
               onGenerate={handleGenerate}
             />
-
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: 2,
-              }}
-            >
-              <span
-                style={{
-                  fontSize: 9,
-                  fontWeight: 700,
-                  color: "#27272a",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.08em",
-                }}
-              >
-                Top {mistakes.length} Biggest Mistakes
-              </span>
-              <span style={{ fontSize: 9, color: "#1f1f23" }}>By EV impact</span>
-            </div>
-
-            {mistakes.map((m) => (
-              <MistakeCard
-                key={m.id}
-                mistake={m}
-                isOpen={openId === m.id}
-                onToggle={() => setOpenId(openId === m.id ? null : m.id)}
-                isGenerating={genStatus === "generating"}
-              />
-            ))}
-          </div>
-
-          <div
-            style={{
-              maxWidth: 760,
-              margin: "0 auto",
-              padding: "0 20px 40px",
-              textAlign: "center",
-            }}
-          >
-            <p style={{ fontSize: 10, color: "#141416" }}>
-              Mortal AI &middot; Claude &middot; v0.5
-            </p>
+            <BoardPanel mistake={selectedMistake} />
+            <AnalysisPanel
+              mistake={selectedMistake}
+              isGenerating={genStatus === "generating"}
+            />
           </div>
         </>
       )}

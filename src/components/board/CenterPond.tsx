@@ -1,5 +1,11 @@
 import type { BoardState } from "../../data/types";
 import DiscardPond from "../tiles/DiscardPond";
+import {
+  TEXT_MUTED,
+  BORDER_HOVER,
+  FONT_LABEL,
+  FONT_SERIF,
+} from "../../lib/designTokens";
 
 interface CenterPondProps {
   data: BoardState;
@@ -21,7 +27,7 @@ function WindIndicator({
         height: 44,
         borderRadius: 6,
         background: "linear-gradient(135deg,#18181b 0%,#0f0f12 100%)",
-        border: "1px solid #1f1f23",
+        border: `1px solid ${BORDER_HOVER}`,
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -33,16 +39,16 @@ function WindIndicator({
         style={{
           fontSize: 16,
           fontWeight: 800,
-          color: "#3f3f46",
-          fontFamily: "'Noto Serif',serif",
+          color: TEXT_MUTED,
+          fontFamily: FONT_SERIF,
         }}
       >
         {windKanji}
       </span>
       <span
         style={{
-          fontSize: 7,
-          color: "#27272a",
+          fontSize: FONT_LABEL,
+          color: TEXT_MUTED,
           textTransform: "uppercase",
           letterSpacing: "0.1em",
         }}

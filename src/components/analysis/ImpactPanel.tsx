@@ -1,4 +1,9 @@
 import type { Impact, ImpactType } from "../../data/types";
+import {
+  TEXT_MUTED,
+  FONT_LABEL,
+  FONT_MONO,
+} from "../../lib/designTokens";
 
 interface ImpactPanelProps {
   impact: Impact;
@@ -20,7 +25,7 @@ export default function ImpactPanel({ impact }: ImpactPanelProps) {
         <span style={{ fontSize: 14 }}>{c.icon}</span>
         <span
           style={{
-            fontSize: 10,
+            fontSize: FONT_LABEL,
             fontWeight: 700,
             color: "#d4d4d8",
             textTransform: "uppercase",
@@ -55,8 +60,8 @@ export default function ImpactPanel({ impact }: ImpactPanelProps) {
             >
               <div
                 style={{
-                  fontSize: 8,
-                  color: "#3f3f46",
+                  fontSize: FONT_LABEL,
+                  color: TEXT_MUTED,
                   textTransform: "uppercase",
                   letterSpacing: "0.06em",
                 }}
@@ -68,7 +73,7 @@ export default function ImpactPanel({ impact }: ImpactPanelProps) {
                   fontSize: 15,
                   fontWeight: 800,
                   color: item.color,
-                  fontFamily: "'JetBrains Mono',monospace",
+                  fontFamily: FONT_MONO,
                 }}
               >
                 {item.value}

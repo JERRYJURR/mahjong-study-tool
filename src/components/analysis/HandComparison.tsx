@@ -1,5 +1,6 @@
 import type { TileNotation } from "../../data/types";
 import Tile from "../tiles/Tile";
+import { TEXT_MUTED, FONT_BODY } from "../../lib/designTokens";
 
 interface HandComparisonProps {
   yourDiscard: TileNotation | null;
@@ -22,7 +23,7 @@ export default function HandComparison({ yourDiscard, optimalDiscard }: HandComp
       >
         <div
           style={{
-            fontSize: 9,
+            fontSize: FONT_BODY,
             color: "#f87171",
             fontWeight: 700,
             textTransform: "uppercase",
@@ -35,10 +36,10 @@ export default function HandComparison({ yourDiscard, optimalDiscard }: HandComp
         {yourDiscard ? (
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <Tile tile={yourDiscard} highlight="bad" size="lg" />
-            <span style={{ fontSize: 11, color: "#71717a" }}>Discard {yourDiscard}</span>
+            <span style={{ fontSize: FONT_BODY, color: TEXT_MUTED }}>Discard {yourDiscard}</span>
           </div>
         ) : (
-          <span style={{ fontSize: 11, color: "#52525b", fontStyle: "italic" }}>Passed on call</span>
+          <span style={{ fontSize: FONT_BODY, color: TEXT_MUTED, fontStyle: "italic" }}>Passed on call</span>
         )}
       </div>
 
@@ -53,7 +54,7 @@ export default function HandComparison({ yourDiscard, optimalDiscard }: HandComp
       >
         <div
           style={{
-            fontSize: 9,
+            fontSize: FONT_BODY,
             color: "#34d399",
             fontWeight: 700,
             textTransform: "uppercase",
@@ -65,7 +66,7 @@ export default function HandComparison({ yourDiscard, optimalDiscard }: HandComp
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
           {isSimpleOptimal && <Tile tile={optimalDiscard} highlight="good" size="lg" />}
-          <span style={{ fontSize: 11, color: "#71717a" }}>{optimalDiscard || "\u2014"}</span>
+          <span style={{ fontSize: FONT_BODY, color: TEXT_MUTED }}>{optimalDiscard || "\u2014"}</span>
         </div>
       </div>
     </div>

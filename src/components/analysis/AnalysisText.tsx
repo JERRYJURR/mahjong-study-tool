@@ -1,4 +1,14 @@
 import type { Explanation } from "../../data/types";
+import {
+  TEXT_MUTED,
+  TEXT_FAINT,
+  ACCENT_CYAN,
+  BORDER_DEFAULT,
+  BG_CARD,
+  FONT_LABEL,
+  FONT_BODY,
+  FONT_MONO,
+} from "../../lib/designTokens";
 
 interface AnalysisTextProps {
   explanation: Explanation;
@@ -14,15 +24,14 @@ function isPlaceholder(explanation: Explanation): boolean {
 export default function AnalysisText({ explanation, isGenerating }: AnalysisTextProps) {
   const placeholder = isPlaceholder(explanation);
 
-  // If it's a placeholder and we're actively generating, show a loading state
   if (placeholder && isGenerating) {
     return (
       <div
         style={{
           padding: 16,
           borderRadius: 9,
-          background: "#0f0f12",
-          border: "1px solid #1a1a1d",
+          background: BG_CARD,
+          border: `1px solid ${BORDER_DEFAULT}`,
           display: "flex",
           alignItems: "center",
           gap: 10,
@@ -32,40 +41,44 @@ export default function AnalysisText({ explanation, isGenerating }: AnalysisText
           style={{
             width: 14,
             height: 14,
-            border: "2px solid #1a1a1d",
-            borderTopColor: "#22d3ee",
+            border: `2px solid ${BORDER_DEFAULT}`,
+            borderTopColor: ACCENT_CYAN,
             borderRadius: "50%",
             animation: "spin 0.8s linear infinite",
             flexShrink: 0,
           }}
         />
-        <span style={{ fontSize: 12, color: "#52525b" }}>
+        <span style={{ fontSize: FONT_BODY, color: TEXT_MUTED }}>
           Generating AI analysis...
         </span>
       </div>
     );
   }
 
-  // If it's a placeholder and NOT generating, show a subtle hint
   if (placeholder) {
     return (
       <div
         style={{
-          padding: 14,
+          padding: 20,
           borderRadius: 9,
-          background: "#0f0f12",
-          border: "1px dashed #1a1a1d",
+          background: BG_CARD,
+          border: `1px dashed ${BORDER_DEFAULT}`,
           textAlign: "center",
         }}
       >
-        <span style={{ fontSize: 11, color: "#3f3f46" }}>
+        <div style={{ fontSize: 24, marginBottom: 8, opacity: 0.4 }}>
+          {"\u{1F9E0}"}
+        </div>
+        <div style={{ fontSize: FONT_BODY, color: TEXT_MUTED, marginBottom: 4 }}>
           AI analysis not yet generated
-        </span>
+        </div>
+        <div style={{ fontSize: FONT_LABEL, color: TEXT_FAINT }}>
+          Use the Generate button in the sidebar
+        </div>
       </div>
     );
   }
 
-  // Real AI-generated explanation
   return (
     <>
       {/* Summary */}
@@ -86,8 +99,8 @@ export default function AnalysisText({ explanation, isGenerating }: AnalysisText
       <div>
         <div
           style={{
-            fontSize: 9,
-            color: "#3f3f46",
+            fontSize: FONT_LABEL,
+            color: TEXT_MUTED,
             fontWeight: 700,
             textTransform: "uppercase",
             letterSpacing: "0.06em",
@@ -101,9 +114,9 @@ export default function AnalysisText({ explanation, isGenerating }: AnalysisText
             <div key={i} style={{ display: "flex", gap: 9 }}>
               <span
                 style={{
-                  color: "#22d3ee",
-                  fontFamily: "'JetBrains Mono',monospace",
-                  fontSize: 10,
+                  color: ACCENT_CYAN,
+                  fontFamily: FONT_MONO,
+                  fontSize: FONT_LABEL,
                   marginTop: 2,
                   flexShrink: 0,
                   width: 12,
@@ -129,8 +142,8 @@ export default function AnalysisText({ explanation, isGenerating }: AnalysisText
       >
         <div
           style={{
-            fontSize: 9,
-            color: "#22d3ee",
+            fontSize: FONT_LABEL,
+            color: ACCENT_CYAN,
             fontWeight: 700,
             textTransform: "uppercase",
             letterSpacing: "0.05em",

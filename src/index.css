@@ -5,6 +5,11 @@
   margin: 0;
 }
 
+html, body, #root {
+  height: 100%;
+  overflow: hidden;
+}
+
 ::-webkit-scrollbar {
   width: 5px;
 }
@@ -17,7 +22,7 @@
 }
 
 input::placeholder {
-  color: #3f3f46;
+  color: #737373;
 }
 
 @keyframes spin {
