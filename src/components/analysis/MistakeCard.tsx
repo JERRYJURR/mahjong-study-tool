@@ -12,9 +12,10 @@ interface MistakeCardProps {
   mistake: Mistake;
   isOpen: boolean;
   onToggle: () => void;
+  isGenerating?: boolean;
 }
 
-export default function MistakeCard({ mistake, isOpen, onToggle }: MistakeCardProps) {
+export default function MistakeCard({ mistake, isOpen, onToggle, isGenerating }: MistakeCardProps) {
   const m = mistake;
   const border = isOpen
     ? m.evDiff <= -3
@@ -174,7 +175,7 @@ export default function MistakeCard({ mistake, isOpen, onToggle }: MistakeCardPr
 
           <HandComparison yourDiscard={m.yourDiscard} optimalDiscard={m.optimalDiscard} />
           <ImpactPanel impact={m.impact} />
-          <AnalysisText explanation={m.explanation} />
+          <AnalysisText explanation={m.explanation} isGenerating={isGenerating} />
           <MistakeChat mistakeId={m.id} />
         </div>
       )}

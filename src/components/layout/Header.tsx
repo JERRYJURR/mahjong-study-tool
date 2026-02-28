@@ -4,9 +4,10 @@ import { rankEmoji } from "../../lib/utils";
 interface HeaderProps {
   replay: ReplayMetadata;
   totalEvLoss: number;
+  onNewReplay?: () => void;
 }
 
-export default function Header({ replay, totalEvLoss }: HeaderProps) {
+export default function Header({ replay, totalEvLoss, onNewReplay }: HeaderProps) {
   const r = replay;
 
   return (
@@ -61,6 +62,24 @@ export default function Header({ replay, totalEvLoss }: HeaderProps) {
             </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 16, fontSize: 10 }}>
+            {onNewReplay && (
+              <button
+                onClick={onNewReplay}
+                style={{
+                  fontSize: 10,
+                  padding: "4px 10px",
+                  borderRadius: 6,
+                  border: "1px solid #1a1a1d",
+                  background: "transparent",
+                  color: "#52525b",
+                  cursor: "pointer",
+                  fontFamily: "inherit",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                ← New Replay
+              </button>
+            )}
             <div style={{ textAlign: "right" }}>
               <div style={{ color: "#3f3f46" }}>Result</div>
               <div style={{ fontWeight: 700, fontSize: 11 }}>

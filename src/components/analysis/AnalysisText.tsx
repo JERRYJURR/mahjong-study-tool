@@ -2,11 +2,86 @@ import type { Explanation } from "../../data/types";
 
 interface AnalysisTextProps {
   explanation: Explanation;
+  isGenerating?: boolean;
 }
 
-export default function AnalysisText({ explanation }: AnalysisTextProps) {
+/** Check if this is a pipeline placeholder (not yet AI-generated) */
+function isPlaceholder(explanation: Explanation): boolean {
+  return explanation.principle.includes("pending") ||
+    explanation.principle.includes("Claude API");
+}
+
+export default function AnalysisText({ explanation, isGenerating }: AnalysisTextProps) {
+  const placeholder = isPlaceholder(explanation);
+
+  // If it's a placeholder and we're actively generating, show a loading state
+  if (placeholder && isGenerating) {
+    return (
+      <div
+        style={{
+          padding: 16,
+          borderRadius: 9,
+          background: "#0f0f12",
+          border: "1px solid #1a1a1d",
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+        }}
+      >
+        <div
+          style={{
+            width: 14,
+            height: 14,
+            border: "2px solid #1a1a1d",
+            borderTopColor: "#22d3ee",
+            borderRadius: "50%",
+            animation: "spin 0.8s linear infinite",
+            flexShrink: 0,
+          }}
+        />
+        <span style={{ fontSize: 12, color: "#52525b" }}>
+          Generating AI analysis...
+        </span>
+      </div>
+    );
+  }
+
+  // If it's a placeholder and NOT generating, show a subtle hint
+  if (placeholder) {
+    return (
+      <div
+        style={{
+          padding: 14,
+          borderRadius: 9,
+          background: "#0f0f12",
+          border: "1px dashed #1a1a1d",
+          textAlign: "center",
+        }}
+      >
+        <span style={{ fontSize: 11, color: "#3f3f46" }}>
+          AI analysis not yet generated
+        </span>
+      </div>
+    );
+  }
+
+  // Real AI-generated explanation
   return (
     <>
+      {/* Summary */}
+      <div
+        style={{
+          padding: "10px 12px",
+          borderRadius: 9,
+          background: "rgba(34,211,238,0.04)",
+          border: "1px solid rgba(34,211,238,0.08)",
+        }}
+      >
+        <p style={{ fontSize: 12.5, color: "#d4d4d8", lineHeight: 1.6, margin: 0 }}>
+          {explanation.summary}
+        </p>
+      </div>
+
       {/* Numbered analysis points */}
       <div>
         <div
@@ -26,7 +101,7 @@ export default function AnalysisText({ explanation }: AnalysisTextProps) {
             <div key={i} style={{ display: "flex", gap: 9 }}>
               <span
                 style={{
-                  color: "#1f1f23",
+                  color: "#22d3ee",
                   fontFamily: "'JetBrains Mono',monospace",
                   fontSize: 10,
                   marginTop: 2,
