@@ -23,6 +23,7 @@ export interface Job {
 export type AnalyzeInput =
   | { type: "url"; url: string; player?: number }
   | { type: "paipu"; paipuId: string; player?: number }
+  | { type: "report"; reportUrl: string; player?: number }
   | { type: "files"; mjaiLog: MjaiEventRaw[]; review: MortalReviewRaw };
 
 /** Raw mjai event (untyped — the frontend pipeline will parse these) */
@@ -51,6 +52,8 @@ export interface PipelineOutput {
 export interface AnalyzeRequest {
   /** Mahjong Soul replay URL or paipu ID */
   url?: string;
+  /** mjai.ekyu.moe report URL */
+  reportUrl?: string;
   /** Explicit player seat (0-3), auto-detected if omitted */
   player?: number;
 }
