@@ -1,0 +1,27 @@
+version: "3.8"
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${PORT:-3001}:3001"
+    environment:
+      - PORT=3001
+      - NODE_ENV=production
+      - CORS_ORIGIN=${CORS_ORIGIN:-*}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      # mjai-reviewer (optional, for local Mortal analysis)
+      - MJAI_REVIEWER_PATH=${MJAI_REVIEWER_PATH:-}
+      - MJAI_ENGINE=${MJAI_ENGINE:-}
+      - MORTAL_EXE=${MORTAL_EXE:-}
+      - MORTAL_CFG=${MORTAL_CFG:-}
+      - AKOCHAN_DIR=${AKOCHAN_DIR:-}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3001/api/health').then(r => r.ok ? process.exit(0) : process.exit(1)).catch(() => process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
