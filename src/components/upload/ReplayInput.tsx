@@ -6,6 +6,7 @@ import { parseMjaiLog, parseMortalReview } from "../../lib/fileParsers";
 import { transformReview } from "../../lib/pipeline";
 import ReplayUpload from "./ReplayUpload";
 import PlayerLookup from "./PlayerLookup";
+import { getMjaiEkyuUrl } from "../../lib/koromoApi";
 
 type Tab = "url" | "player" | "upload";
 
@@ -18,6 +19,7 @@ type JobState =
   | { phase: "submitting" }
   | { phase: "polling"; jobId: string; status: string; progress?: string }
   | { phase: "processing"; progress: string }
+  | { phase: "awaiting_report"; mjaiUrl: string }
   | { phase: "done" }
   | { phase: "error"; message: string; submitUrl?: string };
 
@@ -99,27 +101,19 @@ export default function ReplayInput({ onResult }: ReplayInputProps) {
   }
 
   function submitMajsoulUrl(majsoulUrl: string) {
-    setJobState({ phase: "submitting" });
+    // Extract paipu ID from the URL
+    let paipuId: string;
+    try {
+      const parsed = new URL(majsoulUrl);
+      paipuId = parsed.searchParams.get("paipu") ?? majsoulUrl;
+    } catch {
+      // Not a full URL — treat the input itself as a paipu ID
+      paipuId = majsoulUrl;
+    }
 
-    fetch("/api/analyze", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ url: majsoulUrl, player: playerSeat }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.error) {
-          setJobState({ phase: "error", message: data.error });
-          return;
-        }
-        startPolling(data.jobId);
-      })
-      .catch((err) => {
-        setJobState({
-          phase: "error",
-          message: `Network error: ${err instanceof Error ? err.message : String(err)}`,
-        });
-      });
+    const mjaiUrl = getMjaiEkyuUrl(paipuId);
+    window.open(mjaiUrl, "_blank");
+    setJobState({ phase: "awaiting_report", mjaiUrl });
   }
 
   // ── Job polling ──
@@ -138,9 +132,9 @@ export default function ReplayInput({ onResult }: ReplayInputProps) {
             if (pollRef.current) clearInterval(pollRef.current);
 
             // Extract submit URL from error message if present
-            const paipuMatch = job.error.match(/Paipu ID: (\S+)/);
-            const submitUrl = paipuMatch
-              ? `https://mjai.ekyu.moe/?q=${encodeURIComponent(paipuMatch[1])}`
+            const urlMatch = job.error.match(/Original URL: (\S+)/);
+            const submitUrl = urlMatch
+              ? `https://mjai.ekyu.moe/?url=${encodeURIComponent(urlMatch[1])}`
               : undefined;
 
             setJobState({ phase: "error", message: job.error, submitUrl });
@@ -250,6 +244,7 @@ export default function ReplayInput({ onResult }: ReplayInputProps) {
   ];
 
   const isWorking = jobState.phase === "submitting" || jobState.phase === "polling" || jobState.phase === "processing";
+  const awaitingMjaiUrl = jobState.phase === "awaiting_report" ? jobState.mjaiUrl : "";
 
   return (
     <div
@@ -319,6 +314,8 @@ export default function ReplayInput({ onResult }: ReplayInputProps) {
       {/* Tab content */}
       {activeTab === "url" && (
         <div>
+          {jobState.phase !== "awaiting_report" && (
+          <>
           <p style={{ fontSize: 12, color: "#71717a", marginBottom: 14, lineHeight: 1.5 }}>
             Paste a Mahjong Soul replay URL or mjai.ekyu.moe report URL.
           </p>
@@ -329,7 +326,13 @@ export default function ReplayInput({ onResult }: ReplayInputProps) {
               type="text"
               value={url}
               onChange={(e) => {
-                setUrl(e.target.value);
+                let value = e.target.value;
+                // Strip prefix text (e.g. "Mahjong Soul Game Log: https://...")
+                const httpIdx = value.indexOf("http");
+                if (httpIdx > 0) {
+                  value = value.slice(httpIdx).trim();
+                }
+                setUrl(value);
                 if (jobState.phase === "error") setJobState({ phase: "idle" });
               }}
               onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
@@ -402,6 +405,94 @@ export default function ReplayInput({ onResult }: ReplayInputProps) {
                     {seat}
                   </button>
                 ))}
+              </div>
+            </div>
+          )}
+
+          </>
+          )}
+
+          {/* Awaiting report URL from mjai.ekyu.moe */}
+          {jobState.phase === "awaiting_report" && (
+            <div
+              style={{
+                padding: 20,
+                borderRadius: 10,
+                background: "rgba(34,211,238,0.04)",
+                border: "1px solid rgba(34,211,238,0.1)",
+              }}
+            >
+              <div style={{ fontSize: 13, color: "#22d3ee", fontWeight: 600, marginBottom: 6 }}>
+                mjai.ekyu.moe opened in a new tab
+              </div>
+              <div style={{ fontSize: 12, color: "#a1a1aa", lineHeight: 1.6, marginBottom: 16 }}>
+                Solve the CAPTCHA, click Submit, then copy the report URL and paste it below.
+              </div>
+
+              <input
+                type="text"
+                value={reportUrl}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setReportUrl(value);
+                  const trimmed = value.trim();
+                  if (trimmed && detectInputKind(trimmed) === "report") {
+                    submitReportUrl(trimmed);
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    const trimmed = reportUrl.trim();
+                    if (trimmed) submitReportUrl(trimmed);
+                  }
+                }}
+                autoFocus
+                placeholder="https://mjai.ekyu.moe/report/..."
+                style={{
+                  width: "100%",
+                  padding: "11px 14px",
+                  borderRadius: 9,
+                  border: "1px solid #164e63",
+                  background: "#09090b",
+                  color: "#e4e4e7",
+                  fontSize: 13,
+                  fontFamily: "'JetBrains Mono', monospace",
+                  outline: "none",
+                  boxSizing: "border-box" as const,
+                }}
+              />
+
+              <div style={{ marginTop: 12, display: "flex", gap: 16 }}>
+                <button
+                  onClick={() => window.open(awaitingMjaiUrl, "_blank")}
+                  style={{
+                    fontSize: 11,
+                    color: "#0891b2",
+                    background: "transparent",
+                    border: "none",
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                    textDecoration: "underline",
+                    padding: 0,
+                  }}
+                >
+                  Re-open mjai.ekyu.moe
+                </button>
+                <button
+                  onClick={handleReset}
+                  style={{
+                    fontSize: 11,
+                    color: "#71717a",
+                    background: "transparent",
+                    border: "none",
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                    textDecoration: "underline",
+                    padding: 0,
+                  }}
+                >
+                  Start over
+                </button>
               </div>
             </div>
           )}
@@ -570,13 +661,13 @@ export default function ReplayInput({ onResult }: ReplayInputProps) {
               How it works
             </div>
             <div style={{ fontSize: 11, color: "#52525b", lineHeight: 1.7 }}>
-              1. Paste a Mahjong Soul replay URL<br />
-              2. Open mjai.ekyu.moe, solve the CAPTCHA, and submit<br />
-              3. Copy the report URL back here<br />
+              1. Paste a Mahjong Soul replay URL — mjai.ekyu.moe opens automatically<br />
+              2. Solve the CAPTCHA, click Submit, copy the report URL<br />
+              3. Paste the report URL back here — analysis starts automatically<br />
               4. View your analyzed mistakes with Claude AI explanations
             </div>
             <div style={{ fontSize: 10, color: "#3f3f46", marginTop: 8, lineHeight: 1.5 }}>
-              Tip: You can also paste an mjai.ekyu.moe report URL directly to skip steps 1-2.
+              Tip: You can also paste an mjai.ekyu.moe report URL directly to skip step 1.
             </div>
           </div>
         </div>
@@ -601,11 +692,12 @@ function detectInputKind(input: string): InputKind {
   // Check for mjai.ekyu.moe report URL
   try {
     const url = new URL(input);
-    if (
-      (url.hostname === "mjai.ekyu.moe" || url.hostname === "www.mjai.ekyu.moe") &&
-      url.pathname.startsWith("/report/")
-    ) {
-      return "report";
+    if (url.hostname === "mjai.ekyu.moe" || url.hostname === "www.mjai.ekyu.moe") {
+      // Classic format: /report/{id}.html or /report/{id}.json
+      if (url.pathname.startsWith("/report/")) return "report";
+      // KillerDucky UI format: /killerducky/?data=/report/{id}.json
+      const dataParam = url.searchParams.get("data");
+      if (dataParam && dataParam.includes("/report/")) return "report";
     }
   } catch {
     // Not a URL
