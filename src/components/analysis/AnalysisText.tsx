@@ -1,4 +1,5 @@
 import type { Explanation } from "../../data/types";
+import { humanizeTiles } from "../../lib/utils";
 import {
   TEXT_MUTED,
   TEXT_FAINT,
@@ -13,6 +14,7 @@ import {
 interface AnalysisTextProps {
   explanation: Explanation;
   isGenerating?: boolean;
+  onGenerate?: () => void;
 }
 
 /** Check if this is a pipeline placeholder (not yet AI-generated) */
@@ -21,7 +23,7 @@ function isPlaceholder(explanation: Explanation): boolean {
     explanation.principle.includes("Claude API");
 }
 
-export default function AnalysisText({ explanation, isGenerating }: AnalysisTextProps) {
+export default function AnalysisText({ explanation, isGenerating, onGenerate }: AnalysisTextProps) {
   const placeholder = isPlaceholder(explanation);
 
   if (placeholder && isGenerating) {
@@ -69,12 +71,28 @@ export default function AnalysisText({ explanation, isGenerating }: AnalysisText
         <div style={{ fontSize: 24, marginBottom: 8, opacity: 0.4 }}>
           {"\u{1F9E0}"}
         </div>
-        <div style={{ fontSize: FONT_BODY, color: TEXT_MUTED, marginBottom: 4 }}>
+        <div style={{ fontSize: FONT_BODY, color: TEXT_MUTED, marginBottom: 8 }}>
           AI analysis not yet generated
         </div>
-        <div style={{ fontSize: FONT_LABEL, color: TEXT_FAINT }}>
-          Use the Generate button in the sidebar
-        </div>
+        {onGenerate && (
+          <button
+            onClick={onGenerate}
+            style={{
+              padding: "8px 20px",
+              borderRadius: 8,
+              border: "none",
+              background: "linear-gradient(135deg, #0e7490, #0891b2)",
+              color: "#e0f2fe",
+              fontSize: FONT_BODY,
+              fontWeight: 700,
+              cursor: "pointer",
+              fontFamily: "inherit",
+              boxShadow: "0 2px 8px rgba(8,145,178,0.2)",
+            }}
+          >
+            Generate AI Analysis
+          </button>
+        )}
       </div>
     );
   }
@@ -91,7 +109,7 @@ export default function AnalysisText({ explanation, isGenerating }: AnalysisText
         }}
       >
         <p style={{ fontSize: 12.5, color: "#d4d4d8", lineHeight: 1.6, margin: 0 }}>
-          {explanation.summary}
+          {humanizeTiles(explanation.summary)}
         </p>
       </div>
 
@@ -125,7 +143,7 @@ export default function AnalysisText({ explanation, isGenerating }: AnalysisText
               >
                 {i + 1}.
               </span>
-              <p style={{ color: "#a1a1aa", fontSize: 12.5, lineHeight: 1.6, margin: 0 }}>{d}</p>
+              <p style={{ color: "#a1a1aa", fontSize: 12.5, lineHeight: 1.6, margin: 0 }}>{humanizeTiles(d)}</p>
             </div>
           ))}
         </div>
@@ -153,7 +171,7 @@ export default function AnalysisText({ explanation, isGenerating }: AnalysisText
           Takeaway
         </div>
         <p style={{ fontSize: 12.5, color: "rgba(207,250,254,0.7)", lineHeight: 1.6, margin: 0 }}>
-          {explanation.principle}
+          {humanizeTiles(explanation.principle)}
         </p>
       </div>
     </>

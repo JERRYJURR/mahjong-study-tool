@@ -50,10 +50,10 @@ app.listen(PORT, () => {
   console.log(`\n  🀄 Mahjong Study API running at http://localhost:${PORT}`);
   console.log(`  📡 CORS origin: ${process.env.CORS_ORIGIN || "http://127.0.0.1:5173"}`);
 
-  if (process.env.ANTHROPIC_API_KEY) {
-    console.log(`  🤖 Claude API key: configured`);
+  if (process.env.OPENROUTER_API_KEY) {
+    console.log(`  🤖 OpenRouter API key: configured`);
   } else {
-    console.log(`  ⚠️  No ANTHROPIC_API_KEY — clients must provide their own key`);
+    console.log(`  ⚠️  No OPENROUTER_API_KEY — set it in .env`);
   }
 
   console.log();

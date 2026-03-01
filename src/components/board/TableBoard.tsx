@@ -39,7 +39,6 @@ function ToimenRow({ player, handSize }: { player: PlayerState; handSize: TileSi
           <HandBacks
             count={player.closedHandCount || 13}
             size={handSize}
-            overlap={12}
           />
         </div>
       </div>
@@ -85,12 +84,9 @@ function SidePanel({
           ))}
         </div>
       )}
-      <div style={{ display: "flex", flexDirection: "column" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
         {Array.from({ length: count }).map((_, i) => (
-          <div
-            key={i}
-            style={{ marginTop: i === 0 ? 0 : -12 }}
-          >
+          <div key={i}>
             <Tile facedown size={handSize} sideways />
           </div>
         ))}
@@ -255,15 +251,21 @@ export default function TableBoard({ data, size = "compact" }: TableBoardProps) 
         borderRadius: 12,
         border: `1px solid ${BORDER_DEFAULT}`,
         padding,
+        position: "relative",
       }}
     >
-      {/* Header row */}
+      {/* Header row — absolutely positioned to save vertical space */}
       <div
         style={{
+          position: "absolute",
+          top: padding,
+          left: padding,
+          right: padding,
           display: "flex",
-          alignItems: "center",
+          alignItems: "flex-start",
           justifyContent: "space-between",
-          marginBottom: 12,
+          zIndex: 1,
+          pointerEvents: "none",
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>

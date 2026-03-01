@@ -1,5 +1,6 @@
 import type { TileNotation } from "../../data/types";
 import Tile from "../tiles/Tile";
+import { tileName, humanizeTiles } from "../../lib/utils";
 import { TEXT_MUTED, FONT_BODY } from "../../lib/designTokens";
 
 interface HandComparisonProps {
@@ -36,7 +37,7 @@ export default function HandComparison({ yourDiscard, optimalDiscard }: HandComp
         {yourDiscard ? (
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <Tile tile={yourDiscard} highlight="bad" size="lg" />
-            <span style={{ fontSize: FONT_BODY, color: TEXT_MUTED }}>Discard {yourDiscard}</span>
+            <span style={{ fontSize: FONT_BODY, color: TEXT_MUTED }}>Discard {tileName(yourDiscard)}</span>
           </div>
         ) : (
           <span style={{ fontSize: FONT_BODY, color: TEXT_MUTED, fontStyle: "italic" }}>Passed on call</span>
@@ -66,7 +67,7 @@ export default function HandComparison({ yourDiscard, optimalDiscard }: HandComp
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
           {isSimpleOptimal && <Tile tile={optimalDiscard} highlight="good" size="lg" />}
-          <span style={{ fontSize: FONT_BODY, color: TEXT_MUTED }}>{optimalDiscard || "\u2014"}</span>
+          <span style={{ fontSize: FONT_BODY, color: TEXT_MUTED }}>{optimalDiscard ? humanizeTiles(optimalDiscard) : "\u2014"}</span>
         </div>
       </div>
     </div>

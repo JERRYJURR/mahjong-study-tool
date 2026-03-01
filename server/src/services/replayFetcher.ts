@@ -107,7 +107,13 @@ export async function getPlayerGames(
  * - Just the raw paipu ID
  */
 export function extractPaipuId(input: string): string {
-  const trimmed = input.trim();
+  let trimmed = input.trim();
+
+  // Strip prefix text (e.g. "Mahjong Soul Game Log: https://...")
+  const httpIdx = trimmed.indexOf("http");
+  if (httpIdx > 0) {
+    trimmed = trimmed.slice(httpIdx).trim();
+  }
 
   // Try to parse as URL
   try {

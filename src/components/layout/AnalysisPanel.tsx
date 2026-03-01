@@ -1,4 +1,5 @@
 import type { Mistake } from "../../data/types";
+import HandComparison from "../analysis/HandComparison";
 import ImpactPanel from "../analysis/ImpactPanel";
 import AnalysisText from "../analysis/AnalysisText";
 import MistakeChat from "../chat/MistakeChat";
@@ -10,9 +11,10 @@ import {
 interface AnalysisPanelProps {
   mistake: Mistake | null;
   isGenerating?: boolean;
+  onGenerate?: () => void;
 }
 
-export default function AnalysisPanel({ mistake, isGenerating }: AnalysisPanelProps) {
+export default function AnalysisPanel({ mistake, isGenerating, onGenerate }: AnalysisPanelProps) {
   if (!mistake) {
     return (
       <div
@@ -57,10 +59,15 @@ export default function AnalysisPanel({ mistake, isGenerating }: AnalysisPanelPr
           gap: 12,
         }}
       >
+        <HandComparison
+          yourDiscard={mistake.yourDiscard}
+          optimalDiscard={mistake.optimalDiscard}
+        />
         <ImpactPanel impact={mistake.impact} />
         <AnalysisText
           explanation={mistake.explanation}
           isGenerating={isGenerating}
+          onGenerate={onGenerate}
         />
       </div>
 

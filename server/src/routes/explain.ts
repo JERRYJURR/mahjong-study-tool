@@ -21,19 +21,17 @@ router.post("/", async (req, res) => {
     return;
   }
 
-  // Get API key: prefer server env, fall back to client header
-  const apiKey =
-    process.env.ANTHROPIC_API_KEY ||
-    (req.headers["x-anthropic-key"] as string);
+  // Get API key from server env
+  const apiKey = process.env.OPENROUTER_API_KEY;
 
   if (!apiKey) {
     res.status(400).json({
-      error: "No API key available. Set ANTHROPIC_API_KEY on the server or provide x-anthropic-key header.",
+      error: "No API key available. Set OPENROUTER_API_KEY on the server.",
     });
     return;
   }
 
-  const model = (req.query.model as string) || "claude-haiku-4-5";
+  const model = (req.query.model as string) || "anthropic/claude-haiku-4-5";
 
   try {
     const explanations = await generateAllExplanations(

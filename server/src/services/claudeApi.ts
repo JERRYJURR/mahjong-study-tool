@@ -1,13 +1,12 @@
 /**
- * Server-side Claude API integration.
- * Generates mahjong mistake explanations using the Anthropic API directly.
+ * Server-side Claude API integration via OpenRouter.
+ * Generates mahjong mistake explanations using OpenRouter's OpenAI-compatible API.
  */
 
 import type { ExplainMistakeInput, ExplanationResult } from "../types.js";
 
-const ANTHROPIC_API_URL = "https://api.anthropic.com/v1/messages";
-const DEFAULT_MODEL = "claude-haiku-4-5";
-const ANTHROPIC_VERSION = "2023-06-01";
+const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
+const DEFAULT_MODEL = "anthropic/claude-haiku-4-5";
 
 // ── System prompt ────────────────────────────────────────────────────
 
@@ -140,18 +139,19 @@ export async function generateExplanation(
 ): Promise<ExplanationResult> {
   const prompt = buildPrompt(mistake);
 
-  const response = await fetch(ANTHROPIC_API_URL, {
+  const response = await fetch(OPENROUTER_API_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "x-api-key": apiKey,
-      "anthropic-version": ANTHROPIC_VERSION,
+      Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
       model,
       max_tokens: 1024,
-      system: SYSTEM_PROMPT,
-      messages: [{ role: "user", content: prompt }],
+      messages: [
+        { role: "system", content: SYSTEM_PROMPT },
+        { role: "user", content: prompt },
+      ],
     }),
   });
 
@@ -165,14 +165,14 @@ export async function generateExplanation(
   }
 
   const data = (await response.json()) as Record<string, unknown>;
-  const content = data.content as Array<Record<string, unknown>>;
-  const textBlock = content?.find((b) => b.type === "text");
+  const choices = data.choices as Array<Record<string, unknown>>;
+  const messageObj = choices?.[0]?.message as Record<string, unknown>;
 
-  if (!textBlock?.text) {
-    throw new Error("No text in API response");
+  if (!messageObj?.content) {
+    throw new Error("No content in API response");
   }
 
-  return parseExplanation(textBlock.text as string);
+  return parseExplanation(messageObj.content as string);
 }
 
 /**

@@ -88,7 +88,7 @@ router.post("/", (req, res) => {
     player: body.player,
   });
 
-  processPaipuJob(jobId, paipuId, body.player).catch((err) => {
+  processPaipuJob(jobId, paipuId, body.url, body.player).catch((err) => {
     console.error(`Job ${jobId} failed:`, err);
     jobQueue.fail(jobId, err instanceof Error ? err.message : String(err));
   });
@@ -134,6 +134,7 @@ async function processReportJob(
 async function processPaipuJob(
   jobId: string,
   paipuId: string,
+  originalUrl: string,
   playerSeat?: number,
 ): Promise<void> {
   try {
@@ -146,7 +147,7 @@ async function processPaipuJob(
       `1. Open mjai.ekyu.moe (link below) — your replay ID is pre-filled\n` +
       `2. Solve the CAPTCHA and click Submit\n` +
       `3. Copy the report page URL and paste it back here\n\n` +
-      `Paipu ID: ${paipuId}`,
+      `Original URL: ${originalUrl}`,
     );
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";

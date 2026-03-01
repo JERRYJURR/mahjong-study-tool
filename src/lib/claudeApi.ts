@@ -135,60 +135,28 @@ export interface GenerateOptions {
   model?: string;
 }
 
-export async function generateExplanation(
-  mistake: Mistake,
-  options: GenerateOptions,
-): Promise<Explanation> {
-  const model = options.model || DEFAULT_MODEL;
-  const prompt = buildPrompt(mistake);
-
-  const response = await fetch(API_PATH, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": options.apiKey,
-      "anthropic-version": ANTHROPIC_VERSION,
-    },
-    body: JSON.stringify({
-      model,
-      max_tokens: 1024,
-      system: SYSTEM_PROMPT,
-      messages: [{ role: "user", content: prompt }],
-    }),
-  });
-
-  if (!response.ok) {
-    const err = await response.json().catch(() => null);
-    const message =
-      err?.error?.message ??
-      `API error ${response.status}: ${response.statusText}`;
-    throw new Error(message);
-  }
-
-  const data = await response.json();
-
-  // Extract text from response content
-  const textBlock = data.content?.find(
-    (b: { type: string }) => b.type === "text",
-  );
-  if (!textBlock?.text) {
-    throw new Error("No text in API response");
-  }
-
-  return parseExplanation(textBlock.text);
-}
-
 /**
- * Generate explanations for all mistakes sequentially.
- * Calls onProgress after each one completes.
+ * Generate explanations via the server-side /api/explain endpoint.
+ * Sends one mistake at a time so the UI can show real progress.
  */
 export async function generateAllExplanations(
   mistakes: Mistake[],
-  options: GenerateOptions,
+  _options: GenerateOptions,
   onProgress: (index: number, explanation: Explanation) => void,
 ): Promise<void> {
   for (let i = 0; i < mistakes.length; i++) {
-    const explanation = await generateExplanation(mistakes[i], options);
-    onProgress(i, explanation);
+    const response = await fetch("/api/explain", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ mistakes: [mistakes[i]] }),
+    });
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => null);
+      throw new Error(err?.error ?? `Server error ${response.status}`);
+    }
+
+    const data = await response.json();
+    onProgress(i, data.explanations[0]);
   }
 }

@@ -6,7 +6,8 @@ AI-powered post-game analysis for Mahjong Soul (riichi mahjong). Takes replay da
 
 - **Vite + React + TypeScript**
 - **Tailwind CSS** for styling (dark theme, zinc palette with cyan accents)
-- **No component library** — custom components, inline SVG tiles
+- **No component library** — custom components, SVG tile files in `public/tiles/`
+- **Anthropic SDK** for Claude API integration (client + server)
 
 ## Quick Start
 
@@ -20,9 +21,8 @@ npm run dev
 ```
 src/
 ├── components/
-│   ├── tiles/          # Tile rendering (inline SVG, no external images)
+│   ├── tiles/          # Tile rendering (SVG files in public/tiles/)
 │   │   ├── Tile.tsx           # Base tile: face-up, facedown, sideways states
-│   │   ├── TileFace.tsx       # SVG faces: pinzu dots, souzu sticks, manzu kanji, honors
 │   │   ├── TileRow.tsx        # Horizontal tile layout with optional highlight
 │   │   ├── DiscardPond.tsx    # 6-col grid, riichi tile rotated sideways
 │   │   ├── OpenMeld.tsx       # Called tiles with sideways indicator
@@ -35,19 +35,38 @@ src/
 │   │   ├── MistakeCard.tsx    # Expandable mistake with all sub-panels
 │   │   ├── ImpactPanel.tsx    # What happened + point swing comparison
 │   │   ├── HandComparison.tsx # Your play vs optimal (red/green highlights)
-│   │   └── AnalysisText.tsx   # Numbered explanation + takeaway principle
+│   │   ├── AnalysisText.tsx   # Numbered explanation + takeaway principle
+│   │   └── GeneratePanel.tsx  # AI generation workflow (API key, progress)
 │   ├── chat/
-│   │   └── MistakeChat.tsx    # Per-mistake follow-up chat (Claude API later)
+│   │   └── MistakeChat.tsx    # Per-mistake follow-up chat with Claude
+│   ├── upload/
+│   │   ├── ReplayInput.tsx    # Replay file input container
+│   │   ├── ReplayUpload.tsx   # File upload for mjai/Mortal data
+│   │   └── PlayerLookup.tsx   # Player lookup interface
 │   └── layout/
 │       └── Header.tsx         # Sticky header with replay metadata
 ├── data/
 │   ├── types.ts          # All TypeScript interfaces
+│   ├── mortalTypes.ts    # Mortal/mjai event type definitions
 │   └── mockData.ts       # Mock mistakes for development
 ├── lib/
-│   ├── tileMap.ts        # Tile notation → SVG rendering data
-│   └── utils.ts          # Formatting helpers (EV colors, score display)
+│   ├── tileMap.ts            # Tile notation → SVG rendering data
+│   ├── utils.ts              # Formatting helpers (EV colors, score display)
+│   ├── claudeApi.ts          # Claude API client (explanation generation)
+│   ├── pipeline.ts           # Mortal review → Mistake[] transformation
+│   ├── fileParsers.ts        # mjai/Mortal file parsing and detection
+│   ├── gameStateTracker.ts   # Board state reconstruction from mjai log
+│   ├── tileNormalize.ts      # Tile notation normalization
+│   ├── actionFormat.ts       # Action string formatting
+│   ├── categoryClassifier.ts # Mistake categorization logic
+│   └── impactDeriver.ts      # Impact calculation
 ├── App.tsx
 └── main.tsx
+server/
+└── src/
+    ├── index.ts              # Express server with /api/explain endpoint
+    └── services/
+        └── claudeApi.ts      # Server-side Claude API integration
 ```
 
 ## Design System
@@ -87,7 +106,7 @@ All tiles render as inline SVGs. **No external image dependencies.**
 - Souzu: `1s`–`9s` (bamboo, green sticks; 1s is bird motif)
 - Winds: `1z`=東, `2z`=南, `3z`=西, `4z`=北 (blue)
 - Dragons: `5z`=白(haku, empty bordered rect), `6z`=發(green), `7z`=中(red)
-- Red fives: `0m`, `0p`, `0s` (not yet implemented — need red background or indicator)
+- Red fives: `0m`, `0p`, `0s` (dedicated SVG files in `public/tiles/`)
 
 ### Tile States
 - **Face-up**: cream gradient background, SVG face
@@ -180,12 +199,13 @@ interface Explanation {
 - [x] Mock data for 5 mistake categories
 - [x] Table board layout with rotated opponents
 - [x] Impact panel, analysis text, chat stub
-- [ ] Port prototype to Vite project with proper components
-- [ ] TypeScript interfaces for all data
-- [ ] Red five rendering (0m, 0p, 0s)
-- [ ] Data pipeline (mjai/Mortal parsing) — not started
-- [ ] Claude API integration — not started
-- [ ] Responsive/mobile layout
+- [x] Port prototype to Vite project with proper components
+- [x] TypeScript interfaces for all data
+- [x] Red five rendering (0m, 0p, 0s) — SVG files in `public/tiles/`
+- [x] Data pipeline (mjai/Mortal parsing) — full pipeline with game state tracking
+- [x] Claude API integration — client + server, API key management, batch generation
+- [x] Upload UI for replay files and player lookup
+- [ ] Responsive/mobile layout — flexbox adapts but no media queries or mobile-specific UX
 
 ## Coding Conventions
 
@@ -194,8 +214,8 @@ interface Explanation {
 - No `any` types — define interfaces for everything
 - Tile notation always lowercase: `1m`, `5z`, `0p`
 - Colors as hex strings, not Tailwind classes in component styles
-- SVG tiles are self-contained — each Tile component renders a complete `<svg>` element
+- SVG tiles are loaded from `public/tiles/` via `<img>` tags
 
 ## Reference
 
-The working prototype is in `reference/mahjong-study-tool.jsx` — a single-file React component with all logic. Break this apart into the component structure above. The visual design and mock data in this file are the source of truth.
+The original prototype is in `reference/mahjong-study-tool.jsx` — a single-file React component. The prototype has been fully ported into the component structure above.

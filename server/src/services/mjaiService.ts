@@ -29,6 +29,13 @@ export function extractReportId(input: string): string | null {
       // Match /report/{id}.html, /report/{id}.json, or /report/{id}
       const match = url.pathname.match(/^\/report\/([^/.]+)/);
       if (match) return match[1];
+
+      // New KillerDucky UI format: /killerducky/?data=/report/{id}.json
+      const dataParam = url.searchParams.get("data");
+      if (dataParam) {
+        const dataMatch = dataParam.match(/\/report\/([^/.]+)/);
+        if (dataMatch) return dataMatch[1];
+      }
     }
   } catch {
     // Not a URL — check if it's a bare UUID
@@ -134,7 +141,7 @@ export async function fetchReport(reportId: string): Promise<MjaiReport> {
  * Build a pre-filled mjai.ekyu.moe submit URL for a Mahjong Soul paipu ID.
  */
 export function buildSubmitUrl(paipuId: string): string {
-  return `${BASE_URL}/?q=${encodeURIComponent(paipuId)}`;
+  return `${BASE_URL}/?url=${encodeURIComponent(`https://game.mahjongsoul.com/?paipu=${paipuId}`)}`;
 }
 
 // ── Response parsing ─────────────────────────────────────────────────
